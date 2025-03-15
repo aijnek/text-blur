@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ブラウザ画像文字検出</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        #result {
+            white-space: pre-wrap;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            display: none;
+        }
+        .button {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            margin: 10px 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 30px;
+            background-color: #4285f4;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>画像から文字を検出</h1>
+    <div class="container">
+        <div>
+            <input type="file" id="imageInput" accept="image/*">
+            <button id="recognizeBtn" class="button" disabled>文字を検出</button>
+        </div>
+        
+        <img id="imagePreview" alt="プレビュー">
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <div class="loading" id="loading">処理中...<br>画像のサイズによっては時間がかかる場合があります</div>
+        
+        <div>
+            <h3>検出結果:</h3>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('imageInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const recognizeBtn = document.getElementById('recognizeBtn');
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            // 画像がアップロードされたときのプレビュー表示
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                        recognizeBtn.disabled = false;
+                        resultDiv.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 文字認識実行
+            recognizeBtn.addEventListener('click', function() {
+                if (!imageInput.files.length) return;
+                
+                resultDiv.textContent = '';
+                resultDiv.style.display = 'block';
+                loadingDiv.style.display = 'block';
+                progressContainer.style.display = 'block';
+                recognizeBtn.disabled = true;
+                
+                // 言語設定
+                const language = 'jpn+eng'; // 日本語と英語を認識
+                
+                Tesseract.recognize(
+                    imageInput.files[0],
+                    language,
+                    {
+                        logger: progress => {
+                            if (progress.status === 'recognizing text') {
+                                const percentage = Math.round(progress.progress * 100);
+                                progressBar.style.width = `${percentage}%`;
+                                progressBar.textContent = `${percentage}%`;
+                            }
+                        }
+                    }
+                ).then(({ data: { text } }) => {
+                    resultDiv.textContent = text;
+                    loadingDiv.style.display = 'none';
+                    recognizeBtn.disabled = false;
+                }).catch(error => {
+                    resultDiv.textContent = `エラーが発生しました: ${error.message}`;
+                    loadingDiv.style.display = 'none';
+                    recognizeBtn.disabled = false;
+                }).finally(() => {
+                    progressContainer.style.display = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
