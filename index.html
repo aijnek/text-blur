@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テキスト検出 & ぼかし処理</title>
+    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        canvas {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+        #uploadButton {
+            margin: 20px 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #loading {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>画像テキスト検出 & ぼかし処理</h1>
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="uploadButton">処理開始</button>
+        <div id="loading">処理中...</div>
+        <canvas id="outputCanvas"></canvas>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
